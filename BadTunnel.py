@@ -1,6 +1,5 @@
 # BadTunnel.py
 #
-# Programmers: Shay and Yuval
 # Description: This program replys to NBNS requests with pre-defined answer.
 # -----------------------------------------
 
